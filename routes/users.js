@@ -15,68 +15,68 @@ router.get('/Users', (req,res)=>{
 });
 
 
-//save new user
-router.post('/CreatUser',adminAuth, (req,res) => {
-    const data =req.body;
-    Users.push({
-        ID: uuid(),
-        Name:data.Name,
-        Role:data.Role,
-    });
-    res.send({
-        msg:"User Created",
-    });
+//save new user (register new user) 
+
+router.post('/register',(req,res)=>{
+    const data=req.body;
+    con.query('insert into user_model set ?',{Name:data.Name,Email:data.Email,Password:data.Password,Phone:data.Phone},
+    (err,result,fields)=>{
+        if(err){
+            res.statusCode=400;
+            res.json({msg:"register failed",
+        });}
+    else{
+        res.json({
+            msg:"user created",
+        });
+    }
+        }
+    );
 });
 
+
 //get specific user (search)
-router.get('/Users/:ID',adminAuth, (req,res)=>{
-    const { ID }= req.params;
-    const UserInderx= Users.findIndex((item)=>item.ID==ID)
-    if (UserInderx == -1){
-        res.statusCode=404;
-        res.send({
-            "msg":"User not found"
-        })
-    }
-    else {
-        
-        res.send(Users[UserInderx]);
-    }
-    
+router.get('/Users/:Email', (req,res)=>{
+    const { Email }= req.params;
+    con.query("select * from user_model where ?",{Email : Email},(err,result,fields)=>
+    {
+        if (result[0]) {
+        res.json(result);
+        }
+        else {
+            res.statusCode =404;
+            res.json({
+                msg:"user not found"
+            })
+        }
+    });
 });
-// put request -> update user by id
-router.put('/Users/:ID',adminAuth, (req,res)=>{
-    const { ID }= req.params;
+    
+    
+//update data (to change from in-active to active )
+router.put('/Users/:Email', (req,res)=>{
+    const { Email }= req.params;
     const data =req.body;
-    const UserInderx= Users.findIndex((item)=>item.ID==ID)
-    if (UserInderx == -1){
-        res.statusCode=404;
-        res.send({
-            "msg":"User not found"
-        })
+    con.query("update user_model set ? where Email = ?",[{ Status : data.Status},Email],(err,result)=>{
+    if (err){
+        res.statusCode=500;
+        res.json({msg:"cant update user"});
     }
-    else {
-        Users[UserInderx].Name=data.Name;
-        Users[UserInderx].Role=data.Role;
-        res.json(Users[UserInderx]);
-    }
+    res.json({msg:"updated succ."});
+});
 });
 
 // delete request -> delete user by id
-router.delete('/Users/:ID',adminAuth, (req,res)=>{
-    const { ID }= req.params;
-    const UserInderx= Users.findIndex((item)=>item.ID==ID)
-    if (UserInderx == -1){
-        res.statusCode=404;
-        res.send({
-            "msg":"User not found"
-        })
-    }
-    else {
-        Users.slice(UserInderx,1);
-        res.json({
-            "msg":"user deleted"
-        });
-    }
+router.delete('/Users/:Email', (req,res)=>{
+    const { Email }= req.params;
+    con.query("delete from user_model where ?",{Email:Email},(err,result)=>{
+        if (err){
+            res.statusCode=500
+            res.json({
+                msg:"failed to delete user"
+            })
+        }
+        res.json({msg:"user deleted"})
+    })
 });
 module.exports = router;
