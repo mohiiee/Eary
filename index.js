@@ -5,7 +5,7 @@ const adminn = require("./middleware/admin")
 const users=require("./routes/users");
 const con=require('./db/connection')
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // parse application/json
 app.use(bodyParser.json())
